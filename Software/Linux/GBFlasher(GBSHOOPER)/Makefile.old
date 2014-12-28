@@ -1,0 +1,40 @@
+# GNU Make
+ifneq (,)
+    This makefile requires GNU Make.
+endif
+
+# Macros
+CC=gcc
+CFLAGS=-g -Wall -O2 $(shell libftdi-config --cflags) $(shell pkg-config gtk+-3.0 --cflags)
+LDFLAGS=$(shell libftdi-config --libs) $(shell pkg-config gtk+-3.0 --libs) -lpthread
+SRCS=communications.c flashcart.c guimain.c
+OBJ_DIR=build
+SRC_DIR=src
+OBJS=$(sort $(patsubst %.c,$(OBJ_DIR)/%.o,$(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))))
+EXECUTABLE=gbshooper
+
+vpath %.c $(SRC_DIR)
+
+define define_compile_rules
+$(OBJ_DIR)/%.o: $(1)%.c
+	$(CC) $$(CFLAGS) -c $$< -o $$@
+endef
+$(foreach directory,$(sort $(dir $(SRCS))),$(eval $(call define_compile_rules,$(directory))))
+
+.PHONY: all checkdirs clean
+
+all: checkdirs $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJS)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+checkdirs: $(OBJ_DIR)
+
+$(OBJ_DIR):
+	@mkdir -p $@
+
+clean:
+	@rm -rf $(OBJ_DIR) $(EXECUTABLE) *~ src/*~  
+
+
+
